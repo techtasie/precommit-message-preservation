@@ -57,7 +57,7 @@ def get_content(filename: typing.Text) -> typing.Text:
 def get_repository_branch() -> typing.Text:
 	"""Get the name of the current branch for the git repository."""
 	try:
-		return subprocess.check_output(["git", "branch", "--show-current"]).decode("utf-8")
+		return subprocess.check_output(["git", "branch", "--show-current"]).decode("utf-8").strip()
 	except subprocess.CalledProcessError as e:
 		LOGGER.warning("Failed to get the git branch: %s", e)
 	return "unknown"
