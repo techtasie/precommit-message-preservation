@@ -135,7 +135,7 @@ class Tests(unittest.TestCase):
 		"Message cache should be removed on successful exit from MessagePreservation"
 		with fake_repository("some-repo", "a-branch"):
 			with unittest.mock.patch("precommit_message_preservation.remove_message_cache") as remove:
-				with pmp.MessagePreservation():
+				with pmp.MessagePreservation("some message"):
 					pass
 				remove.assert_called_with("some-repo", "a-branch")
 
@@ -144,6 +144,6 @@ class Tests(unittest.TestCase):
 		with fake_repository("some-repo", "a-branch"):
 			with unittest.mock.patch("precommit_message_preservation.save_commit_message") as save:
 				with self.assertRaises(Exception):
-					with pmp.MessagePreservation():
+					with pmp.MessagePreservation("some message"):
 						raise Exception("for testing.")
 					save.assert_called_with("some-repo", "a-branch")

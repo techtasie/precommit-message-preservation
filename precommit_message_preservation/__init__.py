@@ -111,8 +111,9 @@ def save_commit_message(message: typing.Text,
 
 class MessagePreservation():
 	"""A context manager that handles saving and removing commit messages."""
-	def __init__(self):
+	def __init__(self, message: typing.Text):
 		self.branch = get_repository_branch()
+		self.message = message
 		self.repository_root = get_repository_root()
 
 	def __enter__(self):
@@ -120,7 +121,8 @@ class MessagePreservation():
 
 	def __exit__(self, type_, value, traceback):
 		if any([type_, value, traceback]):
-			save_commit_message(self.repository_root, self.branch)
+			save_commit_message(self.message, self.repository_root, self.branch)
+			LOGGER.info("Your original commit message:\n\n%s\n", self.message)
 		else:
 			remove_message_cache(self.repository_root, self.branch)
 		return False
