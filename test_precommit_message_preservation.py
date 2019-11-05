@@ -68,14 +68,14 @@ class Tests(unittest.TestCase):
 		"Get the repository branch."
 		with unittest.mock.patch("subprocess.check_output", autospec=subprocess.check_output, return_value=b"develop") as check_output:
 			root = pmp.get_repository_branch()
-			check_output.assert_called_with(["git", "branch"])
+			check_output.assert_called_with(["git", "branch", "--show-current"])
 			self.assertEqual(root, "develop")
 
 	def test_get_repository_branch_failed(self):
 		"Fail to get the repository branch."
 		with unittest.mock.patch("subprocess.check_output", autospec=subprocess.check_output, side_effect=subprocess.CalledProcessError(1, "git")) as check_output:
 			root = pmp.get_repository_branch()
-			check_output.assert_called_with(["git", "branch"])
+			check_output.assert_called_with(["git", "branch", "--show-current"])
 			self.assertEqual(root, "unknown")
 
 	def test_get_repository_root(self):
