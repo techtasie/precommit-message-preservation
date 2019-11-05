@@ -66,7 +66,7 @@ class Tests(unittest.TestCase):
 
 	def test_get_repository_branch(self):
 		"Get the repository branch."
-		with unittest.mock.patch("subprocess.check_output", autospec=subprocess.check_output, return_value="develop") as check_output:
+		with unittest.mock.patch("subprocess.check_output", autospec=subprocess.check_output, return_value=b"develop") as check_output:
 			root = pmp.get_repository_branch()
 			check_output.assert_called_with(["git", "branch"])
 			self.assertEqual(root, "develop")
@@ -80,7 +80,7 @@ class Tests(unittest.TestCase):
 
 	def test_get_repository_root(self):
 		"Get the repository root."
-		with unittest.mock.patch("subprocess.check_output", autospec=subprocess.check_output, return_value="/some/repository/.git") as check_output:
+		with unittest.mock.patch("subprocess.check_output", autospec=subprocess.check_output, return_value=b"/some/repository/.git") as check_output:
 			root = pmp.get_repository_root()
 			check_output.assert_called_with(["git", "rev-parse", "--git-dir"])
 			self.assertEqual(root, "/some/repository")

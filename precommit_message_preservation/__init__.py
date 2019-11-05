@@ -57,7 +57,7 @@ def get_content(filename: typing.Text) -> typing.Text:
 def get_repository_branch() -> typing.Text:
 	"""Get the name of the current branch for the git repository."""
 	try:
-		return subprocess.check_output(["git", "branch"])
+		return subprocess.check_output(["git", "branch"]).decode("utf-8")
 	except subprocess.CalledProcessError as e:
 		LOGGER.warning("Failed to get the git branch: %s", e)
 	return "unknown"
@@ -68,7 +68,7 @@ def get_repository_root() -> typing.Text:
 
 	If we aren't running in a git repository just return the current working directory."""
 	try:
-		git_dir = subprocess.check_output(["git", "rev-parse", "--git-dir"])
+		git_dir = subprocess.check_output(["git", "rev-parse", "--git-dir"]).decode("utf-8")
 		return os.path.abspath(os.path.dirname(git_dir))
 	except subprocess.CalledProcessError as e:
 		LOGGER.warning("Failed to call git rev-parse: %s", e)
