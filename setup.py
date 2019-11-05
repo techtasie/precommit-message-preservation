@@ -5,6 +5,7 @@ setuptools.setup(
 	extras_require = {
 		"develop": [
 			"nose2",
+			"twine",
 		]
 	}
 )
