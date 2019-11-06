@@ -7,6 +7,34 @@ import typing
 from xdg import XDG_CACHE_HOME
 
 LOGGER = logging.getLogger(__name__)
+VERBOSE_MARKER = "# ------------------------ >8 ------------------------"
+
+def clear_comments(content: typing.Text) -> typing.Text:
+	"""Remove all comments from the commit message.
+
+	Args:
+		content: The content of the commit message.
+	"""
+	real_lines = []
+	for line in content.split("\n"):
+		if line[0] != "#":
+			real_lines.append(line)
+	return "\n".join(real_lines)
+
+			
+def clear_verbose_code(content: typing.Text) -> typing.Text:
+	"""Remove the verbose code marker and all code below it.
+
+	Args:
+		content: The content of the commit message.
+	Returns:
+		The content without any lines after th verbose marker.
+	"""
+	index = content.find(VERBOSE_MARKER)
+	if index == -1:
+		LOGGER.debug("No verbose code marker found.")
+		return content
+	return content[:index]
 
 
 def get_cached_message(repository_root: typing.Optional[typing.Text]=None, branch: typing.Optional[typing.Text]=None) -> typing.Text:
@@ -106,8 +134,10 @@ def save_commit_message(message: typing.Text,
 	os.makedirs(os.path.dirname(message_cache), exist_ok=True)
 	LOGGER.info(f"Saving your bad commit message to {message_cache}")
 	LOGGER.info("This will be automatically used by git next commit")
+	cleared_message = clear_verbose_code(message)
+	cleared_message = clear_comments(cleared_message)
 	with open(message_cache, "w") as f:
-		f.write(message)
+		f.write(cleared_message)
 
 class MessagePreservation():
 	"""A context manager that handles saving and removing commit messages."""
