@@ -17,7 +17,7 @@ def clear_comments(content: typing.Text) -> typing.Text:
 	"""
 	real_lines = []
 	for line in content.split("\n"):
-		if line[0] != "#":
+		if not line or line[0] != "#":
 			real_lines.append(line)
 	return "\n".join(real_lines)
 

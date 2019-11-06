@@ -34,6 +34,12 @@ class Tests(unittest.TestCase):
 		result = pmp.clear_comments(content)
 		self.assertEqual(result, "This line is fine.\nBut this is okay")
 
+	def test_clear_comments_empty_lines(self):
+		"Ensure we properly handle empty lines when clearing comments."
+		content = "This is the summary\n\nthis is the body."
+		result = pmp.clear_comments(content)
+		self.assertEqual(result, content)
+
 	def test_clear_verbose_code_no_marker(self):
 		"Don't remove any content without a code marker."
 		content = "This is just content\n# That has comments\nBut no marker."
