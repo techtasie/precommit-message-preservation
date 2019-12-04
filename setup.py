@@ -6,6 +6,10 @@ setuptools.setup(
 		"develop": [
 			"nose2",
 			"twine",
+			"wheel",
 		]
-	}
+	},
+	package_data={
+		"precommit_message_preservation": ["py.typed"],
+	},
 )
