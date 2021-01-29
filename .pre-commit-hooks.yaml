@@ -1,0 +1,5 @@
+-   id: precommit-message-preservation
+    name: (precommit-message-preservation) Message preservation
+    description: Preserve previously rejected commit messages
+    entry: precommit-message-preservation
+    language: python

@@ -1,5 +1,13 @@
 # Changelog
 
+# 1.0
+
+ * Move to using a sqlite DB rather than the filesystem to save messages.
+ * Rename context manager, require passing in the argument parser.
+ * Save message on context manager entrance, not an failure.
+ * Remove dependency on XDG library.
+ * Use pathlib.Path instead of strings
+
 # 0.6
 
 Add type hinting to the library distribution
