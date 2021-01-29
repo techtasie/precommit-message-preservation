@@ -1,3 +1,4 @@
+"All logic for the module."
 import hashlib
 import logging
 import os
@@ -16,7 +17,7 @@ def clear_comments(content: str) -> str:
 	"""
 	return "\n".join(l for l in content.split("\n") if not l.startswith("#"))
 
-			
+
 def clear_verbose_code(content: str) -> str:
 	"""Remove the verbose code marker and all code below it.
 
@@ -67,9 +68,10 @@ def get_cache_file_path(repository_root: str, branch: str) -> str:
 
 
 def get_content(filename: str) -> str:
+	"Get file content as a string, or the empty string. Broken out for tests."
 	try:
-		with open(filename, "r") as f:
-			return f.read()
+		with open(filename, "r") as file_:
+			return file_.read()
 	except OSError:
 		return ""
 
@@ -78,8 +80,8 @@ def get_repository_branch() -> str:
 	"""Get the name of the current branch for the git repository."""
 	try:
 		return subprocess.check_output(["git", "branch", "--show-current"]).decode("utf-8").strip()
-	except subprocess.CalledProcessError as e:
-		LOGGER.warning("Failed to get the git branch: %s", e)
+	except subprocess.CalledProcessError as ex:
+		LOGGER.warning("Failed to get the git branch: %s", ex)
 	return "unknown"
 
 
@@ -90,8 +92,8 @@ def get_repository_root() -> str:
 	try:
 		git_dir = subprocess.check_output(["git", "rev-parse", "--git-dir"]).decode("utf-8")
 		return os.path.abspath(os.path.dirname(git_dir))
-	except subprocess.CalledProcessError as e:
-		LOGGER.warning("Failed to call git rev-parse: %s", e)
+	except subprocess.CalledProcessError as ex:
+		LOGGER.warning("Failed to call git rev-parse: %s", ex)
 	return os.path.abspath(os.curdir)
 
 
@@ -124,14 +126,15 @@ def save_commit_message(message: str,
 	branch = branch or get_repository_branch()
 	message_cache = get_cache_file_path(repository_root, branch)
 	os.makedirs(os.path.dirname(message_cache), exist_ok=True)
-	LOGGER.info(f"Saving your bad commit message to {message_cache}")
+	LOGGER.info("Saving your bad commit message to %s", message_cache)
 	LOGGER.info("This will be automatically used by git next commit")
 	cleared_message = clear_verbose_code(message)
 	cleared_message = clear_comments(cleared_message)
-	with open(message_cache, "w") as f:
-		f.write(cleared_message)
+	with open(message_cache, "w") as file_:
+		file_.write(cleared_message)
 
 def xdg_cache_home() -> Path:
+	"Get user's configured XDG_CACHE_HOME value."
 	home = Path(os.path.expandvars("$HOME"))
 	return Path(os.environ.get("XDG_CACHE_HOME", home / ".cache"))
 
@@ -152,4 +155,3 @@ class MessagePreservation():
 		else:
 			remove_message_cache(self.repository_root, self.branch)
 		return False
-		

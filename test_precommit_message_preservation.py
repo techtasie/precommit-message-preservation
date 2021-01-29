@@ -1,3 +1,5 @@
+# pylint: disable=no-self-use
+"All the tests."
 import contextlib
 import os
 import subprocess
@@ -17,11 +19,13 @@ def fake_repository(repository_root: typing.Text, repository_branch: typing.Text
 
 @contextlib.contextmanager
 def known_xdg_cache(location: typing.Text):
-	with unittest.mock.patch("precommit_message_preservation.XDG_CACHE_HOME", location):
+	"Set fake XDG cache for tests."
+	with unittest.mock.patch("precommit_message_preservation.xdg_cache_home", return_value=location):
 		yield
 
 
-class Tests(unittest.TestCase):
+class Tests(unittest.TestCase): # pylint: disable=too-many-public-methods
+	"All the tests."
 	def test_clear_comments_no_comments(self):
 		"Don't remove lines that just have '#' in the middle."
 		content = "This is\nsome content\nthat only has '#' in the wrong places."
@@ -66,7 +70,7 @@ class Tests(unittest.TestCase):
 				self.assertEqual(message, "some content")
 				get_content.assert_called()
 				self.assertTrue(get_content.call_args[0][0].endswith("precommit-message-preservation/repo-b6fe87a9/master.txt"))
-			
+
 	def test_get_cached_message_repository_branch(self):
 		"Test we can get the cached message for a specific repository."
 		with unittest.mock.patch("precommit_message_preservation.get_content", return_value="some content") as get_content:
@@ -90,13 +94,13 @@ class Tests(unittest.TestCase):
 
 	def test_get_content(self):
 		"Test getting content of a file that exists."
-		with unittest.mock.patch("builtins.open", unittest.mock.mock_open(read_data="some data")) as mock_file:
+		with unittest.mock.patch("builtins.open", unittest.mock.mock_open(read_data="some data")):
 			content = pmp.get_content("some-file.txt")
 			self.assertEqual(content, "some data")
 
 	def test_get_content_failed(self):
 		"Test getting content of a file that does not exist."
-		with unittest.mock.patch("builtins.open", side_effect=OSError()) as mock_file:
+		with unittest.mock.patch("builtins.open", side_effect=OSError()):
 			content = pmp.get_content("some-file.txt")
 			self.assertEqual(content, "")
 
@@ -109,21 +113,27 @@ class Tests(unittest.TestCase):
 
 	def test_get_repository_branch_failed(self):
 		"Fail to get the repository branch."
-		with unittest.mock.patch("subprocess.check_output", autospec=subprocess.check_output, side_effect=subprocess.CalledProcessError(1, "git")) as check_output:
+		with unittest.mock.patch("subprocess.check_output",
+				autospec=subprocess.check_output,
+				side_effect=subprocess.CalledProcessError(1, "git")) as check_output:
 			root = pmp.get_repository_branch()
 			check_output.assert_called_with(["git", "branch", "--show-current"])
 			self.assertEqual(root, "unknown")
 
 	def test_get_repository_root(self):
 		"Get the repository root."
-		with unittest.mock.patch("subprocess.check_output", autospec=subprocess.check_output, return_value=b"/some/repository/.git") as check_output:
+		with unittest.mock.patch("subprocess.check_output",
+				autospec=subprocess.check_output,
+				return_value=b"/some/repository/.git") as check_output:
 			root = pmp.get_repository_root()
 			check_output.assert_called_with(["git", "rev-parse", "--git-dir"])
 			self.assertEqual(root, "/some/repository")
 
 	def test_get_repository_root_failed(self):
 		"Fail to get the repository root."
-		with unittest.mock.patch("subprocess.check_output", autospec=subprocess.check_output, side_effect=subprocess.CalledProcessError(1, "git")) as check_output:
+		with unittest.mock.patch("subprocess.check_output",
+				autospec=subprocess.check_output,
+				side_effect=subprocess.CalledProcessError(1, "git")) as check_output:
 			root = pmp.get_repository_root()
 			check_output.assert_called_with(["git", "rev-parse", "--git-dir"])
 			self.assertEqual(root, os.path.abspath("."))

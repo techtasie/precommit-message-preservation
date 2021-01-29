@@ -1,4 +1,5 @@
-import setuptools
+"Installation instructions."
+import setuptools # type: ignore
 
 setuptools.setup(
 	install_requires = [],
