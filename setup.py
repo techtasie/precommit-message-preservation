@@ -1,7 +1,7 @@
 import setuptools
 
 setuptools.setup(
-	install_requires = ["xdg==4.0.1"],
+	install_requires = [],
 	extras_require = {
 		"develop": [
 			"nose2",

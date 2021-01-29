@@ -1,10 +1,9 @@
 import hashlib
 import logging
 import os
+from pathlib import Path
 import subprocess
 import typing
-
-from xdg import XDG_CACHE_HOME
 
 LOGGER = logging.getLogger(__name__)
 VERBOSE_MARKER = "# ------------------------ >8 ------------------------"
@@ -59,7 +58,7 @@ def get_cache_file_path(repository_root: str, branch: str) -> str:
 		file is for.
 		branch: The name of the branch the repository is checked out on.
 	"""
-	cache_dir = os.path.join(XDG_CACHE_HOME, "precommit-message-preservation")
+	cache_dir = xdg_cache_home() / "precommit-message-preservation"
 	hasher = hashlib.sha256()
 	hasher.update(repository_root.encode("utf-8"))
 	repo_dir = os.path.basename(repository_root) + "-" + hasher.hexdigest()[:8]
@@ -131,6 +130,10 @@ def save_commit_message(message: str,
 	cleared_message = clear_comments(cleared_message)
 	with open(message_cache, "w") as f:
 		f.write(cleared_message)
+
+def xdg_cache_home() -> Path:
+	home = Path(os.path.expandvars("$HOME"))
+	return Path(os.environ.get("XDG_CACHE_HOME", home / ".cache"))
 
 class MessagePreservation():
 	"""A context manager that handles saving and removing commit messages."""
