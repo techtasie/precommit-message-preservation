@@ -15,11 +15,7 @@ def clear_comments(content: typing.Text) -> typing.Text:
 	Args:
 		content: The content of the commit message.
 	"""
-	real_lines = []
-	for line in content.split("\n"):
-		if not line or line[0] != "#":
-			real_lines.append(line)
-	return "\n".join(real_lines)
+	return "\n".join(l for l in content.split("\n") if not l.startswith("#"))
 
 			
 def clear_verbose_code(content: typing.Text) -> typing.Text:
@@ -30,11 +26,8 @@ def clear_verbose_code(content: typing.Text) -> typing.Text:
 	Returns:
 		The content without any lines after th verbose marker.
 	"""
-	index = content.find(VERBOSE_MARKER)
-	if index == -1:
-		LOGGER.debug("No verbose code marker found.")
-		return content
-	return content[:index]
+	parts = content.partition(VERBOSE_MARKER)
+	return parts[0]
 
 
 def get_cached_message(repository_root: typing.Optional[typing.Text]=None, branch: typing.Optional[typing.Text]=None) -> typing.Text:
