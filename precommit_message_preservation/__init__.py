@@ -9,7 +9,7 @@ from xdg import XDG_CACHE_HOME
 LOGGER = logging.getLogger(__name__)
 VERBOSE_MARKER = "# ------------------------ >8 ------------------------"
 
-def clear_comments(content: typing.Text) -> typing.Text:
+def clear_comments(content: str) -> str:
 	"""Remove all comments from the commit message.
 
 	Args:
@@ -18,7 +18,7 @@ def clear_comments(content: typing.Text) -> typing.Text:
 	return "\n".join(l for l in content.split("\n") if not l.startswith("#"))
 
 			
-def clear_verbose_code(content: typing.Text) -> typing.Text:
+def clear_verbose_code(content: str) -> str:
 	"""Remove the verbose code marker and all code below it.
 
 	Args:
@@ -30,7 +30,7 @@ def clear_verbose_code(content: typing.Text) -> typing.Text:
 	return parts[0]
 
 
-def get_cached_message(repository_root: typing.Optional[typing.Text]=None, branch: typing.Optional[typing.Text]=None) -> typing.Text:
+def get_cached_message(repository_root: typing.Optional[str]=None, branch: typing.Optional[str]=None) -> str:
 	"""
 	Get the cached message for the given repository root and branch.
 
@@ -50,7 +50,7 @@ def get_cached_message(repository_root: typing.Optional[typing.Text]=None, branc
 	return get_content(cache_file_path)
 
 
-def get_cache_file_path(repository_root: typing.Text, branch: typing.Text) -> typing.Text:
+def get_cache_file_path(repository_root: str, branch: str) -> str:
 	"""
 	Get the full path to the file to save the commit message.
 
@@ -67,7 +67,7 @@ def get_cache_file_path(repository_root: typing.Text, branch: typing.Text) -> ty
 	return cache_file_path
 
 
-def get_content(filename: typing.Text) -> typing.Text:
+def get_content(filename: str) -> str:
 	try:
 		with open(filename, "r") as f:
 			return f.read()
@@ -75,7 +75,7 @@ def get_content(filename: typing.Text) -> typing.Text:
 		return ""
 
 
-def get_repository_branch() -> typing.Text:
+def get_repository_branch() -> str:
 	"""Get the name of the current branch for the git repository."""
 	try:
 		return subprocess.check_output(["git", "branch", "--show-current"]).decode("utf-8").strip()
@@ -84,7 +84,7 @@ def get_repository_branch() -> typing.Text:
 	return "unknown"
 
 
-def get_repository_root() -> typing.Text:
+def get_repository_root() -> str:
 	"""Get the fully qualified path of the root of the git repository.
 
 	If we aren't running in a git repository just return the current working directory."""
@@ -96,7 +96,7 @@ def get_repository_root() -> typing.Text:
 	return os.path.abspath(os.curdir)
 
 
-def remove_message_cache(repository_root: typing.Text, branch: typing.Text) -> None:
+def remove_message_cache(repository_root: str, branch: str) -> None:
 	"""Removes any files previously saved for caching failed messages.
 
 	Args:
@@ -110,9 +110,9 @@ def remove_message_cache(repository_root: typing.Text, branch: typing.Text) -> N
 		LOGGER.debug("Removed commit message cache file at %s", message_cache)
 
 
-def save_commit_message(message: typing.Text,
-		repository_root: typing.Optional[typing.Text]=None,
-		branch: typing.Optional[typing.Text]=None) -> None:
+def save_commit_message(message: str,
+		repository_root: typing.Optional[str]=None,
+		branch: typing.Optional[str]=None) -> None:
 	"""Get a previously cached commit message, if applicable.
 
 	Args:
@@ -134,7 +134,7 @@ def save_commit_message(message: typing.Text,
 
 class MessagePreservation():
 	"""A context manager that handles saving and removing commit messages."""
-	def __init__(self, message: typing.Text):
+	def __init__(self, message: str):
 		self.branch = get_repository_branch()
 		self.message = message
 		self.repository_root = get_repository_root()
