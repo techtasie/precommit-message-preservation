@@ -52,6 +52,7 @@ def clear_verbose_code(content: str) -> str:
 def connect_db() -> sqlite3.Connection:
 	"Connect to the message database."
 	path = xdg_cache_home() / "precommit-message-preservation.db"
+	LOGGER.info("Connecting to commit message DB at %s", path.absolute())
 	return sqlite3.connect(
 		path.absolute(),
 		detect_types=sqlite3.PARSE_DECLTYPES,
@@ -130,12 +131,25 @@ def main() -> None:
 	)
 	args = parser.parse_args()
 
+	logging.basicConfig(
+		filename=xdg_cache_home() / "precommit-message-preservation.log",
+		format="%(asctime)s %(message)s",
+		level=logging.DEBUG,
+	)
+	LOGGER.setLevel(logging.DEBUG)
 	repository = None if args.any else get_repository()
 	branch = None if args.any else get_repository_branch()
+	LOGGER.info("Operating on repository '%s' and branch '%s'", repository, branch)
 	old_messages = saved_commit_messages(
 		repository,
 		branch,
 	)
+	if old_messages:
+		for message in old_messages:
+			LOGGER.info("Found old message:\n%s", message)
+	else:
+		LOGGER.info("No old messages found")
+
 	if args.dump:
 		for message in old_messages:
 			print(message)
@@ -151,7 +165,11 @@ def main() -> None:
 	except FileNotFoundError:
 		existing_content = ""
 
+	LOGGER.info("Existing commit content:\n%s", existing_content)
+
 	old_messages = deduplicate_messages(old_messages)
+	LOGGER.info("Message count after deduplication: %d", len(old_messages))
+
 	content = "\n\n".join(
 		"# Saved {} by {} hook\n{}".format(
 			message.created.isoformat(),
@@ -160,6 +178,7 @@ def main() -> None:
 		) for message in old_messages) + existing_content
 	with open(args.file, "w") as output_:
 		output_.write(content)
+		LOGGER.info("Wrote to %s\n\n%s", args.file, content)
 
 
 def remove_message_cache(repository: Optional[Path], branch: Optional[str], hookname: Optional[str]) -> None:
@@ -186,6 +205,10 @@ def remove_message_cache(repository: Optional[Path], branch: Optional[str], hook
 		arguments = [params[k] for k in sorted(params.keys())]
 	cursor.execute(query, arguments)
 	connection.commit()
+	LOGGER.info("Removed all old messages for repository '%s', branch '%s', and hookname '%s'",
+		repository, branch, hookname)
+	LOGGER.info("Query: %s", query)
+	LOGGER.info("Params: %s", arguments)
 
 
 def save_commit_message(message: str,
@@ -212,6 +235,11 @@ def save_commit_message(message: str,
 			str(repository.absolute()),
 		))
 	connection.commit()
+	LOGGER.info("Saved commit message:")
+	LOGGER.info(message)
+	LOGGER.info("Repository: %s", repository)
+	LOGGER.info("Branch: %s", branch)
+	LOGGER.info("Hook name: %s", hookname)
 
 def saved_commit_messages(repository: Optional[Path], branch: Optional[str]) -> List[SavedCommitMessage]:
 	"Get all the saved messages for a particular repository and branch"
@@ -278,7 +306,10 @@ class GetAndPreserveMessage():
 		try:
 			with open(args.file, "r") as input_:
 				message = input_.read()
-		except FileNotFoundError:
+			LOGGER.info("Read from %s:\n%s", args.file, message)
+		except FileNotFoundError as ex:
+			LOGGER.warning("Unable to read from %s (%s), setting existing message to the empty string",
+				args.file, ex)
 			message = ""
 
 		no_code = clear_verbose_code(message)
@@ -288,6 +319,8 @@ class GetAndPreserveMessage():
 		self.hookname = hookname
 		self.message = no_comments_or_code
 		self.repository = get_repository()
+		LOGGER.info("Detected repository '%s' and branch %s for hook %s",
+			self.repository, self.branch, self.hookname)
 
 	def __enter__(self) -> str:
 		save_commit_message(

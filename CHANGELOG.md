@@ -1,5 +1,9 @@
 # Changelog
 
+# 1.2
+
+* Add log at `$XDG_CACHE_HOME/precommit-message-preservation.log`
+
 # 1.1
 
  * Avoid conflict with multiple commit-msg hooks saving messages at once.
