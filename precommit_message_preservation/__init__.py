@@ -175,7 +175,9 @@ def main() -> None:
 			message.created.isoformat(),
 			message.hookname,
 			message.content,
-		) for message in old_messages) + existing_content
+		) for message in old_messages)
+	if existing_content and content:
+		content = "{}\n# Existing commit message content\n{}".format(content, existing_content)
 	with open(args.file, "w") as output_:
 		output_.write(content)
 		LOGGER.info("Wrote to %s\n\n%s", args.file, content)

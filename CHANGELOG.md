@@ -2,6 +2,7 @@
 
 # 1.2
 
+* Add separator between cached messages and existing message
 * Add log at `$XDG_CACHE_HOME/precommit-message-preservation.log`
 
 # 1.1
