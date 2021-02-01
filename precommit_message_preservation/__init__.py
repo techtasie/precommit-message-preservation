@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 import sqlite3
 import subprocess
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 LOGGER = logging.getLogger(__name__)
 VERBOSE_MARKER = "# ------------------------ >8 ------------------------"
@@ -57,6 +57,28 @@ def connect_db() -> sqlite3.Connection:
 		detect_types=sqlite3.PARSE_DECLTYPES,
 	)
 
+
+def deduplicate_messages(messages: List[SavedCommitMessage]) -> List[SavedCommitMessage]:
+	"""Remove duplicate saved commit messages.
+
+	Turns out that precommit runs through all commit-msg hooks, even if
+	one fails. If more than one hook uses this library and fails we maf restore
+	two copies of a message. That's bad.
+	"""
+	message_to_hooknames: Dict[str,SavedCommitMessage] = {}
+	for message in messages:
+		existing = message_to_hooknames.get(message.content)
+		if existing:
+			message_to_hooknames[message.content] = SavedCommitMessage(
+				branch=message.branch,
+				content=message.content,
+				created=max(message.created, existing.created),
+				hookname=existing.hookname + " and " + message.hookname,
+				repository=message.repository,
+			)
+		else:
+			message_to_hooknames[message.content] = message
+	return list(message_to_hooknames.values())
 
 def ensure_tables(connection: sqlite3.Connection) -> None:
 	"Ensure the tables we need are present"
@@ -121,7 +143,7 @@ def main() -> None:
 			print("No cached messages")
 		return
 
-	remove_message_cache(repository, branch)
+	remove_message_cache(repository, branch, None)
 
 	try:
 		with open(args.file, "r") as input_:
@@ -129,6 +151,7 @@ def main() -> None:
 	except FileNotFoundError:
 		existing_content = ""
 
+	old_messages = deduplicate_messages(old_messages)
 	content = "\n\n".join(
 		"# Saved {} by {} hook\n{}".format(
 			message.created.isoformat(),
@@ -139,28 +162,29 @@ def main() -> None:
 		output_.write(content)
 
 
-def remove_message_cache(repository: Optional[Path], branch: Optional[str]) -> None:
+def remove_message_cache(repository: Optional[Path], branch: Optional[str], hookname: Optional[str]) -> None:
 	"""Removes any files previously saved for caching failed messages.
 
 	Args:
 		repository: The absolute path to the repository root that this cache
 		file is for.
 		branch: The name of the branch the repository is checked out on.
+		hookname: The name of the hook to limit clearing to.
 	"""
 	connection = connect_db()
 	cursor = connection.cursor()
 	query = "DELETE FROM message"
+	params = {}
 	if repository:
-		if branch:
-			query += " WHERE repository=? AND branch=?"
-			params = [str(repository.absolute()), branch]
-		else:
-			query += " WHERE repository=?"
-			params = [str(repository.absolute())]
-	elif branch:
-		query += " WHERE branch=?"
-		params = [branch]
-	cursor.execute(query, params)
+		params["repository"] = str(repository)
+	if branch:
+		params["branch"] = branch
+	if hookname:
+		params["hookname"] = hookname
+	if params:
+		query += " WHERE " + " AND ".join("{}=?".format(k) for k in sorted(params.keys()))
+		arguments = [params[k] for k in sorted(params.keys())]
+	cursor.execute(query, arguments)
 	connection.commit()
 
 
@@ -244,7 +268,7 @@ class GetAndPreserveMessage():
 	Args:
 		args: The parsed arguments.
 	"""
-	def __init__(self, args: argparse.Namespace, hookname: str = "unknown"):
+	def __init__(self, args: argparse.Namespace, hookname: str):
 		if not hasattr(args, "file"):
 			raise MissingArgsError(
 				"The args provided had no value for 'args.file'. Likely this "
@@ -277,5 +301,5 @@ class GetAndPreserveMessage():
 		if any([type_, value, traceback]):
 			print("Commit message rejected. Original content:\n{}".format(self.message))
 		else:
-			remove_message_cache(self.repository, self.branch)
+			remove_message_cache(self.repository, self.branch, self.hookname)
 		return False

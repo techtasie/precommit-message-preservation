@@ -109,9 +109,9 @@ class Tests(unittest.TestCase): # pylint: disable=too-many-public-methods
 		repo = Path("/repo")
 		with fake_repository(repo, "a-branch"):
 			with unittest.mock.patch("precommit_message_preservation.remove_message_cache") as remove:
-				with pmp.GetAndPreserveMessage(args()):
+				with pmp.GetAndPreserveMessage(args(), "test"):
 					pass
-				remove.assert_called_with(repo, "a-branch")
+				remove.assert_called_with(repo, "a-branch", "test")
 
 	def test_message_preservation_failure(self):
 		"Message cache should be saved on unsuccessful exit from MessagePreservation"
@@ -119,6 +119,6 @@ class Tests(unittest.TestCase): # pylint: disable=too-many-public-methods
 		with fake_repository(repo, "a-branch"):
 			with unittest.mock.patch("precommit_message_preservation.save_commit_message") as save:
 				with self.assertRaises(Exception):
-					with pmp.GetAndPreserveMessage(args()):
+					with pmp.GetAndPreserveMessage(args(), "test"):
 						raise Exception("for testing.")
 					save.assert_called_with(repo, "a-branch")

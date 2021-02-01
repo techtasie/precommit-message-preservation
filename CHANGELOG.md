@@ -1,5 +1,9 @@
 # Changelog
 
+# 1.1
+
+ * Avoid conflict with multiple commit-msg hooks saving messages at once.
+
 # 1.0
 
  * Move to using a sqlite DB rather than the filesystem to save messages.
