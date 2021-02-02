@@ -43,7 +43,7 @@ def clear_verbose_code(content: str) -> str:
 	Args:
 		content: The content of the commit message.
 	Returns:
-		The content without any lines after th verbose marker.
+		The content without any lines after the verbose marker.
 	"""
 	parts = content.partition(VERBOSE_MARKER)
 	return parts[0]
@@ -178,6 +178,7 @@ def main() -> None:
 		) for message in old_messages)
 	if existing_content and content:
 		content = "{}\n# Existing commit message content\n{}".format(content, existing_content)
+	content = content or existing_content
 	with open(args.file, "w") as output_:
 		output_.write(content)
 		LOGGER.info("Wrote to %s\n\n%s", args.file, content)

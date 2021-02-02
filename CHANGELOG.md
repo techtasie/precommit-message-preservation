@@ -1,5 +1,9 @@
 # Changelog
 
+# 1.3
+
+* Fix issue with erasing all content on 'commit --amend' when no DB exists
+
 # 1.2
 
 * Add separator between cached messages and existing message
