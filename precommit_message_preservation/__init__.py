@@ -51,8 +51,8 @@ def clear_verbose_code(content: str) -> str:
 
 def connect_db() -> sqlite3.Connection:
 	"Connect to the message database."
-	path = os.path.join(os.getenv('TEMP', '/tmp'), 'precommit-message-preservation.db')
-	LOGGER.info("Connecting to commit message DB at %s", path.absolute())
+	temp_dir = Path(os.getenv('TEMP', '/tmp'))
+	path = temp_dir / 'precommit-message-preservation.db'	LOGGER.info("Connecting to commit message DB at %s", path.absolute())
 	return sqlite3.connect(
 		path.absolute(),
 		detect_types=sqlite3.PARSE_DECLTYPES,
